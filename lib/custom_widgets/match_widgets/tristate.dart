@@ -34,8 +34,11 @@ class _TristateState extends State<TristateButton> {
       child: Pressable(
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
+            side: const BorderSide(color: Colors.black, width: 1),
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.zero,
             ),
             foregroundColor: Colors.black,
             backgroundColor: (currentState == 0

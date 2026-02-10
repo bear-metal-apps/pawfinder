@@ -35,40 +35,54 @@ class _StringTextboxState extends State<StringTextbox> {
       height: widget.yLength,
       child: TextField(
         cursorColor: Colors.black,
+        expands: true,
+        maxLines: null,
+        minLines: null,
+        textAlignVertical: TextAlignVertical.top,
         decoration: InputDecoration(
           filled: true,
           fillColor: widget.fillColor ?? Colors.white,
-          labelText: widget.dataName,
-          labelStyle: TextStyle(color: widget.outlineColor ?? Colors.black),
+          hintText: widget.dataName,
+          hintStyle: TextStyle(color: widget.outlineColor ?? Colors.black),
+          floatingLabelBehavior: FloatingLabelBehavior.never,
+          isDense: true,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.zero,
+            borderSide: BorderSide(
+              color: widget.outlineColor ?? Colors.black,
+              width: 1.0,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide(
               color: widget.outlineColor ?? Colors.black,
               width: 1.0,
             ),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide(
               color: widget.outlineColor ?? Colors.red,
               width: 1.0,
             ),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide(
               color: widget.outlineColor ?? Colors.black,
               width: 1.0,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide(
               color: widget.outlineColor ?? Colors.black,
               width: 1.0,
             ),
           ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: 10, vertical: 10),
         ),
         controller: controller,
         onChanged: (text) {

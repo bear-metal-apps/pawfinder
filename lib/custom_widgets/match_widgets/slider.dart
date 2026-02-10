@@ -32,23 +32,49 @@ class _CustomSliderState extends State<CustomSlider> {
     return SizedBox(
       width: widget.xValue,
       height: widget.yValue,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          Slider(
-            min: widget.minValue.toDouble(),
-            max: widget.maxValue.toDouble(),
-            value: sliderValue,
-            onChanged: (value) {
-              widget.onChanged(value);
-              setState(() => sliderValue = value);
-            },
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final max = widget.maxValue.toDouble();
+          final min = widget.minValue.toDouble();
+          final divisions =
+              widget.segmentLength != null && widget.segmentLength! > 0
+              ? ((max - min) / widget.segmentLength!).round()
+              : null;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: constraints.maxHeight * 0.35,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Slider(
+                  min: min,
+                  max: max,
+                  divisions: divisions,
+                  value: sliderValue.clamp(min, max),
+                  onChanged: (value) {
+                    widget.onChanged(value);
+                    setState(() => sliderValue = value);
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

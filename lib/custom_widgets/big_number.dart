@@ -32,48 +32,81 @@ class _BigNumberWidget extends State<BigNumberWidget> {
     return SizedBox(
       width: widget.xLength,
       height: widget.yLength,
-      child: Column(
-        children: [
-          Text(
-            "${widget.text}: $currentValue",
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(
-            width: widget.xLength,
-            height: widget.yLength - 40,
-            child: GridView(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisExtent: (widget.xLength - 40) / 8,
-              ),
-              children: [
-                for (final x in widget.buttons)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        currentValue += x;
-                      });
-                      widget.onChanged?.call(x);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: widget.backgroundColor ?? Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
+          final headerHeight = height * 0.28;
+          final gridHeight = (height - headerHeight).clamp(0.0, height);
+          final rows = (widget.buttons.length / 3).ceil().clamp(1, 6);
+          final cellHeight = gridHeight / rows;
+          final cellWidth = width / 3;
+          final aspectRatio = cellHeight > 0 ? cellWidth / cellHeight : 1.0;
+
+          return Column(
+            children: [
+              SizedBox(
+                height: headerHeight,
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      "${widget.text}: $currentValue",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
-                    child: Text(x > 0 ? "+$x" : x.toString()),
                   ),
-              ],
-            ),
-          ),
-        ],
+                ),
+              ),
+              SizedBox(
+                height: gridHeight,
+                width: width,
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: aspectRatio,
+                  ),
+                  itemCount: widget.buttons.length,
+                  itemBuilder: (context, index) {
+                    final value = widget.buttons[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            currentValue += value;
+                          });
+                          widget.onChanged?.call(currentValue);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                          widget.backgroundColor ?? Colors.white,
+                          side: const BorderSide(color: Colors.black, width: 1),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            value > 0 ? "+$value" : value.toString(),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

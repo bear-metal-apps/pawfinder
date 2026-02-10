@@ -87,15 +87,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/match/auto',
-            builder: (context, state) => const MatchPage(index: 0),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: MatchPage(index: 0)),
           ),
           GoRoute(
             path: '/match/tele',
-            builder: (context, state) => const MatchPage(index: 1),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: MatchPage(index: 1)),
           ),
           GoRoute(
             path: '/match/end',
-            builder: (context, state) => const MatchPage(index: 2),
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: MatchPage(index: 2)),
           ),
         ],
       ),
@@ -138,9 +141,6 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(matchPagesProvider.notifier).loadUI(context);
-    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(authProvider).trySilentLogin();

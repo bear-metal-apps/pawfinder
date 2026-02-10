@@ -37,79 +37,88 @@ class _NumberButtonState extends State<NumberButton> {
     return SizedBox(
       width: widget.xLength,
       height: widget.yLength,
-      child: Pressable(
-        child: ElevatedButton(
-          onPressed: () {
-            setState(() {
-              currentVariable++;
-            });
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final height = constraints.maxHeight;
+          final buttonHeight = (height * 0.3).clamp(28.0, 44.0);
+          final allowNegative = widget.negativeAllowed ?? false;
 
-            widget.onChanged?.call(currentVariable);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: widget.backgroundColor ?? Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
+          return Pressable(
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  currentVariable++;
+                });
+
+                widget.onChanged?.call(currentVariable);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: widget.backgroundColor ?? Colors.white,
+                side: const BorderSide(color: Colors.black, width: 1),
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                padding: EdgeInsets.zero,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(6.0),
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          '${widget.dataName}: $currentVariable',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: SizedBox(
+                      width: buttonHeight * 1.6,
+                      height: buttonHeight,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            if (allowNegative) {
+                              currentVariable--;
+                            } else if (currentVariable > 0) {
+                              currentVariable--;
+                            }
+                          });
+
+                          widget.onChanged?.call(currentVariable);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.zero,
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.black,
+                          side: const BorderSide(color: Colors.black, width: 1),
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ),
+                        child: const Icon(Icons.remove),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 0.0),
-                child: Text(
-                  '${widget.dataName}: $currentVariable',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              Align(
-                alignment: widget.textAlignment,
-                child: Container(
-                  margin: const EdgeInsets.only(
-                    right: 1.0,
-                    left: 1.0,
-                    bottom: 8.0,
-                  ),
-                  width: 56,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    iconSize: 24,
-                    icon: const Icon(Icons.remove, color: Colors.black),
-                    onPressed: () {
-                      setState(() {
-                        if (widget.negativeAllowed == null) {
-                          widget.negativeAllowed == true;
-                        }
-                        if (widget.negativeAllowed == true) {
-                          currentVariable--;
-                        } else {
-                          if (currentVariable > 0) {
-                            currentVariable--;
-                          }
-                        }
-                      });
-
-                      widget.onChanged?.call(currentVariable);
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }

@@ -34,42 +34,50 @@ class _BoolButtonState extends State<BoolButton> {
     return SizedBox(
       width: widget.xLength,
       height: widget.yLength,
-      child: Pressable(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            splashFactory: NoSplash.splashFactory,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            foregroundColor: Colors.black,
-            backgroundColor: (boolButtonState == false)
-                ? Colors.red
-                : Colors.green,
-            padding: EdgeInsets.all(16.0),
-            minimumSize: Size(widget.xLength, widget.yLength),
-          ),
-          onPressed: () {
-            setState(() {
-              boolButtonState = !boolButtonState;
-            });
-            widget.onChanged(boolButtonState);
-          },
-          child: Center(
-            child: AutoSizeText(
-              widget.dataName,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black,
-                fontSize:
-                    widget.minfontSize ??
-                    20.0, // Use the provided font size or default to 16.0
-                fontWeight: FontWeight.bold,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final padding =
+          (constraints.biggest.shortestSide * 0.12).clamp(6.0, 16.0);
+
+          return Pressable(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                splashFactory: NoSplash.splashFactory,
+                side: const BorderSide(color: Colors.black, width: 1),
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero,
+                ),
+                foregroundColor: Colors.black,
+                backgroundColor: (boolButtonState == false)
+                    ? Colors.red
+                    : Colors.green,
+                padding: EdgeInsets.all(padding),
+                minimumSize: Size(widget.xLength, widget.yLength),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+              onPressed: () {
+                setState(() {
+                  boolButtonState = !boolButtonState;
+                });
+                widget.onChanged(boolButtonState);
+              },
+              child: Center(
+                child: AutoSizeText(
+                  widget.dataName,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: widget.minfontSize ?? 20.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
