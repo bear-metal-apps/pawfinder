@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
-
-
 class NavBar extends StatefulWidget {
   final Widget page;
   final String title;
@@ -17,7 +15,7 @@ class NavBar extends StatefulWidget {
     required this.page,
     required this.title,
     required this.router,
-    this.devMode = false, 
+    this.devMode = false,
     this.actions,
   });
 
@@ -29,8 +27,6 @@ class NavBar extends StatefulWidget {
 
 class NavBarState extends State<NavBar> {
   final List<User> users = [User(name: 'BenD'), User(name: 'MatthewS')];
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +44,12 @@ class NavBarState extends State<NavBar> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title),toolbarHeight: MediaQuery.of(context).size.height * 3/32, actions: [widget.actions ?? SizedBox.shrink()],),
-      
+      appBar: AppBar(
+        title: Text(widget.title),
+        toolbarHeight: MediaQuery.of(context).size.height * 3 / 32,
+        actions: [widget.actions ?? SizedBox.shrink()],
+      ),
+
       body: widget.page,
       drawer: Drawer(
         width: 250.0,
@@ -166,22 +166,25 @@ class MatchNavBarState extends State<MatchNavBar> {
       body: widget.page,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex(context),
-        onTap: (index) async {
+        onTap: (index) {
           String target = '/Match/Auto';
+          MatchPhase phase = MatchPhase.auto;
           switch (index) {
             case 0:
               target = '/Match/Auto';
+              phase = MatchPhase.auto;
               break;
             case 1:
               target = '/Match/Tele';
+              phase = MatchPhase.tele;
               break;
             case 2:
               target = '/Match/End';
+              phase = MatchPhase.end;
               break;
           }
-
-          final allowed = await _confirmIfDirty(context);
-          if (allowed) widget.router.go(target);
+          UndoRedoManager().setActivePhase(phase);
+          widget.router.go(target);
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.bolt), label: "Auto"),
@@ -198,34 +201,34 @@ class MatchNavBarState extends State<MatchNavBar> {
     );
   }
 
-  Future<bool> _confirmIfDirty(BuildContext ctx) async {
-    final manager = UndoRedoManager();
-    if (!manager.canUndo && !manager.canRedo) return true;
+  // Future<bool> _confirmIfDirty(BuildContext ctx) async {
+  //   final manager = UndoRedoManager();
+  //   if (!manager.canUndo && !manager.canRedo) return true;
 
-    final result = await showDialog<bool>(
-      context: ctx,
-      builder: (c) {
-        return AlertDialog(
-          title: const Text('Unsaved changes'),
-          content: const Text('You have recent changes. Switching pages will discard undo/redo. Continue?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(c).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(c).pop(true),
-              child: const Text('Continue'),
-            ),
-          ],
-        );
-      },
-    );
+  //   final result = await showDialog<bool>(
+  //     context: ctx,
+  //     builder: (c) {
+  //       return AlertDialog(
+  //         title: const Text('Unsaved changes'),
+  //         content: const Text('You have recent changes. Switching pages will discard undo/redo. Continue?'),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(c).pop(false),
+  //             child: const Text('Cancel'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () => Navigator.of(c).pop(true),
+  //             child: const Text('Continue'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
 
-    if (result == true) {
-      manager.clearActivePhase();
-      return true;
-    }
-    return false;
-  }
+  //   if (result == true) {
+  //     manager.clearActivePhase();
+  //     return true;
+  //   }
+  //   return false;
+  // }
 }
