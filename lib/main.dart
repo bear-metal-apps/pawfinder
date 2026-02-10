@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo_buttons.dart';
 import 'package:beariscope_scouter/pages/schedule.dart';
 import 'package:beariscope_scouter/pages/strat.dart';
 import 'package:beariscope_scouter/custom_widgets/nav_bar.dart';
 import 'package:beariscope_scouter/pages/match.dart';
-import 'package:beariscope_scouter/pages/schedule.dart';
-import 'package:beariscope_scouter/pages/strat.dart';
 import 'package:beariscope_scouter/pages/user.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,12 +14,6 @@ import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import 'custom_widgets/match_page.dart';
-import 'custom_widgets/nav_bar.dart';
-import 'pages/match.dart';
-import 'pages/match_stages/auto_page.dart';
-import 'pages/match_stages/end_page.dart';
-import 'pages/match_stages/tele_page.dart';
-import 'pages/user.dart';
 
 void main() {
   runApp(
@@ -87,6 +80,10 @@ final List<FutureBuilder> matchPages = [
     },
   ),
 ];
+bool isTargetPage(BuildContext context, String page) {
+  final location = GoRouterState.of(context).uri.toString();
+  return location.startsWith(page);
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -99,6 +96,7 @@ class MyApp extends StatelessWidget {
             page: child,
             title: "Current Page",
             router: MyApp.router,
+            actions: isTargetPage(context, '/Match') ? UndoRedoButtons(manager: UndoRedoManager()) : null,
           );
         },
         routes: [

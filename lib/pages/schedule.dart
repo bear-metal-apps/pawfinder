@@ -1,6 +1,4 @@
-import 'dart:math';
 
-import 'package:beariscope_scouter/custom_widgets/int_button.dart';
 import 'package:beariscope_scouter/custom_widgets/tristate.dart';
 import 'package:beariscope_scouter/main.dart';
 import 'package:flutter/material.dart';

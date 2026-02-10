@@ -1,6 +1,7 @@
 import 'package:beariscope_scouter/pages/user.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
 
 
@@ -9,13 +10,15 @@ class NavBar extends StatefulWidget {
   final String title;
   final GoRouter router;
   final bool devMode;
+  final Widget? actions;
 
   const NavBar({
     super.key,
     required this.page,
     required this.title,
     required this.router,
-    this.devMode = false,
+    this.devMode = false, 
+    this.actions,
   });
 
   @override
@@ -45,7 +48,8 @@ class NavBarState extends State<NavBar> {
       );
     }
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title),toolbarHeight: MediaQuery.of(context).size.height * 3/32),
+      appBar: AppBar(title: Text(widget.title),toolbarHeight: MediaQuery.of(context).size.height * 3/32, actions: [widget.actions ?? SizedBox.shrink()],),
+      
       body: widget.page,
       drawer: Drawer(
         width: 250.0,
@@ -162,18 +166,22 @@ class MatchNavBarState extends State<MatchNavBar> {
       body: widget.page,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex(context),
-        onTap: (index) {
+        onTap: (index) async {
+          String target = '/Match/Auto';
           switch (index) {
             case 0:
-              widget.router.go('/Match/Auto');
+              target = '/Match/Auto';
               break;
             case 1:
-              widget.router.go('/Match/Tele');
+              target = '/Match/Tele';
               break;
             case 2:
-              widget.router.go('/Match/End');
+              target = '/Match/End';
               break;
           }
+
+          final allowed = await _confirmIfDirty(context);
+          if (allowed) widget.router.go(target);
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.bolt), label: "Auto"),
@@ -188,5 +196,36 @@ class MatchNavBarState extends State<MatchNavBar> {
         ],
       ),
     );
+  }
+
+  Future<bool> _confirmIfDirty(BuildContext ctx) async {
+    final manager = UndoRedoManager();
+    if (!manager.canUndo && !manager.canRedo) return true;
+
+    final result = await showDialog<bool>(
+      context: ctx,
+      builder: (c) {
+        return AlertDialog(
+          title: const Text('Unsaved changes'),
+          content: const Text('You have recent changes. Switching pages will discard undo/redo. Continue?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(c).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(c).pop(true),
+              child: const Text('Continue'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      manager.clearActivePhase();
+      return true;
+    }
+    return false;
   }
 }

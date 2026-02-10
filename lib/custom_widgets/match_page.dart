@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:beariscope_scouter/custom_widgets/bool_button.dart';
 import 'package:beariscope_scouter/custom_widgets/dropdown.dart';
@@ -7,6 +5,7 @@ import 'package:beariscope_scouter/custom_widgets/int_button.dart';
 import 'package:beariscope_scouter/custom_widgets/text_box.dart';
 import 'package:beariscope_scouter/custom_widgets/tristate.dart';
 import 'package:flutter/material.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
 
 class MatchWidget extends StatefulWidget {
@@ -31,6 +30,40 @@ class MatchWidgetState extends State<MatchWidget> {
   @override
   void initState() {
     super.initState();
+    // Set the active undo/redo phase for this match page
+    switch (widget.pageIndex) {
+      case 0:
+        UndoRedoManager().setActivePhase(MatchPhase.auto);
+        break;
+      case 1:
+        UndoRedoManager().setActivePhase(MatchPhase.tele);
+        break;
+      case 2:
+        UndoRedoManager().setActivePhase(MatchPhase.end);
+        break;
+      default:
+        UndoRedoManager().setActivePhase(MatchPhase.auto);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant MatchWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.pageIndex != widget.pageIndex) {
+      switch (widget.pageIndex) {
+        case 0:
+          UndoRedoManager().setActivePhase(MatchPhase.auto);
+          break;
+        case 1:
+          UndoRedoManager().setActivePhase(MatchPhase.tele);
+          break;
+        case 2:
+          UndoRedoManager().setActivePhase(MatchPhase.end);
+          break;
+        default:
+          UndoRedoManager().setActivePhase(MatchPhase.auto);
+      }
+    }
   }
 
   @override

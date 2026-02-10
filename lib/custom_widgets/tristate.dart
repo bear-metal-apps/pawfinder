@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pressable_flutter/pressable_flutter.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
 class TristateButton extends StatefulWidget {
   final String dataName;
@@ -47,22 +48,22 @@ class _TristateState extends State<TristateButton> {
                 : Colors.grey),
           ),
           onPressed: () {
-            setState(() {
-              switch (currentState) {
-                case 0:
-                  currentState = 1;
-                  break;
-                case 1:
-                  currentState = 2;
-                  break;
-                case 2:
-                  currentState = 0;
-                  break;
-                default:
-                  break;
-              }
-              widget.onChanged(currentState);
-            });
+            final oldValue = currentState;
+            final newValue = (oldValue == 0) ? 1 : (oldValue == 1) ? 2 : 0;
+
+            void apply(int v) {
+              setState(() {
+                currentState = v;
+              });
+              widget.onChanged(v);
+            }
+
+            final cmd = PropertyChangeCommand<int>(
+              setter: apply,
+              newValue: newValue,
+              oldValue: oldValue,
+            );
+            UndoRedoManager().execute(cmd);
           },
           child: Center(
             child: AutoSizeText(

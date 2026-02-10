@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
 // String textbox widget.
 class StringTextbox extends StatefulWidget {
@@ -72,10 +73,24 @@ class _StringTextboxState extends State<StringTextbox> {
         ),
         controller: controller,
         onChanged: (text) {
-          setState(() {
-            value = controller.text;
-            widget.onChanged(value);
-          });
+          final oldValue = value;
+          final newValue = text;
+
+          void apply(String v) {
+            setState(() {
+              value = v;
+              controller.text = v;
+              controller.selection = TextSelection.collapsed(offset: v.length);
+            });
+            widget.onChanged(v);
+          }
+
+          final cmd = PropertyChangeCommand<String>(
+            setter: apply,
+            newValue: newValue,
+            oldValue: oldValue,
+          );
+          UndoRedoManager().execute(cmd);
         },
       ),
     );

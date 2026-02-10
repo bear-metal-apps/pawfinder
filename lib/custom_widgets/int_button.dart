@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pressable_flutter/pressable_flutter.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
 // IMPORTANT: Font size automatically scales with screen size, but the text alignment and button size are fixed.
 // Number button widget that adds and substracts a numerical value.
@@ -39,11 +40,22 @@ class _NumberButtonState extends State<NumberButton> {
       child: Pressable(
         child: ElevatedButton(
           onPressed: () {
-            setState(() {
-              currentVariable++;
-            });
+            final oldValue = currentVariable;
+            final newValue = oldValue + 1;
 
-            widget.onChanged?.call(currentVariable);
+            void apply(int v) {
+              setState(() {
+                currentVariable = v;
+              });
+              widget.onChanged?.call(v);
+            }
+
+            final cmd = PropertyChangeCommand<int>(
+              setter: apply,
+              newValue: newValue,
+              oldValue: oldValue,
+            );
+            UndoRedoManager().execute(cmd);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: widget.backgroundColor ?? Colors.white,
@@ -88,20 +100,27 @@ class _NumberButtonState extends State<NumberButton> {
                     iconSize: 24,
                     icon: const Icon(Icons.remove, color: Colors.black),
                     onPressed: () {
-                      setState(() {
-                        if (widget.negativeAllowed == null) {
-                          widget.negativeAllowed == true;
-                        }
-                        if (widget.negativeAllowed == true) {
-                          currentVariable--;
-                        } else {
-                          if (currentVariable > 0) {
-                            currentVariable--;
-                          }
-                        }
-                      });
+                      final oldValue = currentVariable;
+                      int candidate;
+                      if (widget.negativeAllowed == null || widget.negativeAllowed == true) {
+                        candidate = oldValue - 1;
+                      } else {
+                        candidate = oldValue > 0 ? oldValue - 1 : oldValue;
+                      }
 
-                      widget.onChanged?.call(currentVariable);
+                      void apply(int v) {
+                        setState(() {
+                          currentVariable = v;
+                        });
+                        widget.onChanged?.call(v);
+                      }
+
+                      final cmd = PropertyChangeCommand<int>(
+                        setter: apply,
+                        newValue: candidate,
+                        oldValue: oldValue,
+                      );
+                      UndoRedoManager().execute(cmd);
                     },
                   ),
                 ),

@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:pressable_flutter/pressable_flutter.dart';
+import 'package:beariscope_scouter/custom_widgets/undo_redo.dart';
 
 class Dropdown extends StatefulWidget {
   final String title;
@@ -36,7 +37,9 @@ class _DropdownState extends State<Dropdown> {
   @override
   void initState() {
     super.initState();
-    dropdownValue = widget.items.first;
+    dropdownValue = widget.initialIndex != null
+        ? widget.items[widget.initialIndex!]
+        : widget.items.first;
   }
 
   @override
@@ -74,7 +77,24 @@ class _DropdownState extends State<Dropdown> {
                     DropdownMenuItem<String>(value: value, child: Text(value)),
               )
               .toList(),
-          onChanged: widget.onChanged,
+          onChanged: (val) {
+            final oldValue = dropdownValue;
+            final newValue = val;
+
+            void apply(String? v) {
+              setState(() {
+                dropdownValue = v ?? '';
+              });
+              widget.onChanged?.call(v);
+            }
+
+            final cmd = PropertyChangeCommand<String?>(
+              setter: apply,
+              newValue: newValue,
+              oldValue: oldValue,
+            );
+            UndoRedoManager().execute(cmd);
+          },
           hint: AutoSizeText(
             widget.title,
             style: TextStyle(fontSize: 16, color: Colors.black),
