@@ -13,6 +13,7 @@ class StratShell extends ConsumerWidget {
     final session = ref.watch(scoutingSessionProvider);
     final notifier = ref.read(scoutingSessionProvider.notifier);
     final matchNumber = session.matchNumber ?? 0;
+    final stratUndoRedoState = ref.watch(stratUndoRedoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,6 +56,36 @@ class StratShell extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.undo),
+            tooltip: 'Undo',
+            onPressed: stratUndoRedoState.undoStack.isEmpty
+                ? null
+                : () async {
+                    try {
+                      ref.read(stratUndoRedoProvider.notifier).undo();
+                      // Give the provider state time to update
+                      await Future.delayed(const Duration(milliseconds: 50));
+                    } catch (e) {
+                      debugPrint('Stratundo error: $e');
+                    }
+                  },
+          ),
+          IconButton(
+            icon: const Icon(Icons.redo),
+            tooltip: 'Redo',
+            onPressed: stratUndoRedoState.redoStack.isEmpty
+                ? null
+                : () async {
+                    try {
+                      ref.read(stratUndoRedoProvider.notifier).redo();
+                      // Give the provider state time to update
+                      await Future.delayed(const Duration(milliseconds: 50));
+                    } catch (e) {
+                      debugPrint('Strat redo error: $e');
+                    }
+                  },
+          ),
           IconButton(
             icon: const Icon(Icons.skip_previous),
             tooltip: 'Previous Match',

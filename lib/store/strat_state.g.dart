@@ -42,7 +42,7 @@ final class DriverSkillNotifierProvider
 }
 
 String _$driverSkillNotifierHash() =>
-    r'03caaae47658770785f45489135c7a3b815c9af7';
+    r'010311d3afb99d24425c763aee34ee612d52034f';
 
 abstract class _$DriverSkillNotifier extends $Notifier<List<String>> {
   List<String> build();
@@ -62,6 +62,58 @@ abstract class _$DriverSkillNotifier extends $Notifier<List<String>> {
   }
 }
 
+@ProviderFor(DefensiveSkillNotifier)
+final defensiveSkillProvider = DefensiveSkillNotifierProvider._();
+
+final class DefensiveSkillNotifierProvider
+    extends $NotifierProvider<DefensiveSkillNotifier, List<String>> {
+  DefensiveSkillNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'defensiveSkillProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$defensiveSkillNotifierHash();
+
+  @$internal
+  @override
+  DefensiveSkillNotifier create() => DefensiveSkillNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<String> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<String>>(value),
+    );
+  }
+}
+
+String _$defensiveSkillNotifierHash() =>
+    r'4ee60c674f13d65069fb1210d040b7c085afe794';
+
+abstract class _$DefensiveSkillNotifier extends $Notifier<List<String>> {
+  List<String> build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<List<String>, List<String>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<List<String>, List<String>>,
+              List<String>,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 @ProviderFor(MechanicalStabilityNotifier)
 final mechanicalStabilityProvider = MechanicalStabilityNotifierProvider._();
@@ -95,7 +147,8 @@ final class MechanicalStabilityNotifierProvider
   }
 }
 
-String _$mechanicalStabilityNotifierHash() => r'3c35385535abdb4f60221bbbfe45dc6bd8824b70';
+String _$mechanicalStabilityNotifierHash() =>
+    r'9656db8e6a9d6d3f2082f86df4ebf21d63b98f2b';
 
 abstract class _$MechanicalStabilityNotifier extends $Notifier<List<String>> {
   List<String> build();
@@ -115,56 +168,55 @@ abstract class _$MechanicalStabilityNotifier extends $Notifier<List<String>> {
   }
 }
 
+@ProviderFor(HumanPlayerNotifier)
+final humanPlayerProvider = HumanPlayerNotifierProvider._();
 
-
-@ProviderFor(DefensiveSkillNotifier)
-final defensiveSkillProvider = DefensiveSkillNotifierProvider._();
-
-final class DefensiveSkillNotifierProvider
-    extends $NotifierProvider<DefensiveSkillNotifier, List<String>> {
-  DefensiveSkillNotifierProvider._()
-      : super(
-    from: null,
-    argument: null,
-    retry: null,
-    name: r'defensiveSkillProvider',
-    isAutoDispose: true,
-    dependencies: null,
-    $allTransitiveDependencies: null,
-  );
+final class HumanPlayerNotifierProvider
+    extends $NotifierProvider<HumanPlayerNotifier, int> {
+  HumanPlayerNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'humanPlayerProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
-  String debugGetCreateSourceHash() => _$defensiveSkillNotifierHash();
+  String debugGetCreateSourceHash() => _$humanPlayerNotifierHash();
 
   @$internal
   @override
-  DefensiveSkillNotifier create() => DefensiveSkillNotifier();
+  HumanPlayerNotifier create() => HumanPlayerNotifier();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<String> value) {
+  Override overrideWithValue(int value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<List<String>>(value),
+      providerOverride: $SyncValueProvider<int>(value),
     );
   }
 }
 
-String _$defensiveSkillNotifierHash() => r'3c35385535abdb4f60221bbbfe45dc6bd8824b70';
+String _$humanPlayerNotifierHash() =>
+    r'c92551b160b65ba4ff55ffefdc71a323903aa3ab';
 
-abstract class _$DefensiveSkillNotifier extends $Notifier<List<String>> {
-  List<String> build();
+abstract class _$HumanPlayerNotifier extends $Notifier<int> {
+  int build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<List<String>, List<String>>;
+    final ref = this.ref as $Ref<int, int>;
     final element =
-    ref.element
-    as $ClassProviderElement<
-        AnyNotifier<List<String>, List<String>>,
-        List<String>,
-        Object?,
-        Object?
-    >;
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<int, int>,
+              int,
+              Object?,
+              Object?
+            >;
     element.handleCreate(ref, build);
   }
 }

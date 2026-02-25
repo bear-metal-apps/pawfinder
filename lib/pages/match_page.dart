@@ -45,6 +45,12 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
     return 'MATCH_${eventKey}_${matchNumber}_${positionKey}_$fieldId';
   }
 
+  void _trackAndUpdateValue(String dataBoxKey, dynamic newValue) {
+    final oldValue = dataBox.get(dataBoxKey);
+    dataBox.put(dataBoxKey, newValue);
+    ref.read(undoRedoProvider.notifier).trackChange(dataBoxKey, oldValue, newValue);
+  }
+
   @override
   Future<List<List<Widget>>> build() async {
     // Provider starts empty until load() is called
@@ -52,7 +58,25 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
   }
 
   Future<void> loadUI(BuildContext context) async {
-    state = const AsyncLoading();
+    await _buildPages(context, resetHistory: true, showLoading: true);
+  }
+
+  Future<void> refreshUI(BuildContext context) async {
+    await _buildPages(context, resetHistory: false, showLoading: false);
+  }
+
+  Future<void> _buildPages(
+    BuildContext context, {
+    required bool resetHistory,
+    required bool showLoading,
+  }) async {
+    if (showLoading) {
+      state = const AsyncLoading();
+    }
+    if (resetHistory) {
+      // Clear undo/redo history when loading a new page
+      ref.read(undoRedoProvider.notifier).clearHistory();
+    }
 
     state = await AsyncValue.guard(() async {
       final mediaQuery = MediaQuery.of(context);
@@ -76,12 +100,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
         for (final data in page.components) {
           final dataBoxKey = _buildDataKey(data.fieldId);
           final storedValue = dataBox.get(dataBoxKey);
+          final widgetKey = ValueKey('${dataBoxKey}_${storedValue ?? 'null'}');
 
           Widget widget;
           switch (data.type) {
             case 'volumetric_button':
               widget = BigNumberWidget(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 buttons: [
                   1, 5, -1, -5,
                 ],
@@ -89,24 +114,24 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 yLength: data.layout.h * verticalStep,
                 text: data.alias,
                 initialValue: storedValue is int ? storedValue : null,
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
               );
               break;
             case "int_button":
               widget = NumberButton(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 backgroundColor: Colors.white,
                 dataName: data.alias,
                 xLength: data.layout.w * horizontalStep,
                 yLength: data.layout.h * verticalStep,
                 initialValue: storedValue is int ? storedValue : null,
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
               );
               break;
             case "int_text_box":
               widget = IntTextbox(
-                key: ValueKey(dataBoxKey),
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                key: widgetKey,
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
                 dataName: data.alias,
                 xLength: data.layout.w * horizontalStep,
                 yLength: data.layout.h * verticalStep,
@@ -115,24 +140,24 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
               break;
             case "toggle_switch":
               widget = BoolButton(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 dataName: data.alias,
                 xLength: data.layout.w * horizontalStep,
                 yLength: data.layout.h * verticalStep,
                 initialValue: storedValue is bool ? storedValue : null,
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
                 visualFeedback: true,
               );
               break;
 
             case "text_box":
               widget = StringTextbox(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 dataName: data.alias,
                 xLength: data.layout.w * horizontalStep,
                 yLength: data.layout.h * verticalStep,
                 initialString: storedValue is String ? storedValue : null,
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
               );
               break;
 
@@ -141,11 +166,11 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
             int initialIndex = items.indexOf(storedValue);
 
               widget = Dropdown(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 title: data.alias,
                 backgroundColor: Colors.blueAccent,
                 items: items.map((x) => x.toString()).toList(), // darts type system is really weird
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
                 initialIndex: initialIndex == -1 ? null : initialIndex,
                 xValue: data.layout.w * horizontalStep,
                 yValue: data.layout.h * verticalStep,
@@ -153,31 +178,31 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
               break;
             case "tristate":
               widget = TristateButton(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 dataName: data.alias,
                 xLength: data.layout.w * horizontalStep,
                 yLength: data.layout.h * verticalStep,
                 initialState: storedValue is int ? storedValue : null,
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
               );
               break;
             case "checkbox":
               widget = BoolButton(
-                key: ValueKey(dataBoxKey),
+                key: widgetKey,
                 dataName: data.alias,
                 xLength: data.layout.w * horizontalStep,
                 yLength: data.layout.h * verticalStep,
                 visualFeedback: true,
                 initialValue: storedValue is bool ? storedValue : null,
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
               );
               break;
             case "slider":
               final double? sliderValue =
                   storedValue is num ? storedValue.toDouble() : null;
               widget = CustomSlider(
-                key: ValueKey(dataBoxKey),
-                onChanged: (value) => dataBox.put(dataBoxKey, value),
+                key: widgetKey,
+                onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
                 title: data.alias,
                 xValue: data.layout.w * horizontalStep,
                 yValue: data.layout.h * verticalStep,
@@ -198,9 +223,9 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 initialIndex = idx >= 0 ? idx : null;
               }
               widget = CustomSegmentedButton(
-                  key: ValueKey(dataBoxKey),
+                  key: widgetKey,
                   segments: items.map((x) => x.toString()).toList(),
-                  onChanged: (value) => dataBox.put(dataBoxKey, value),
+                  onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
                   initialIndex: initialIndex,
                   xLength: data.layout.w * horizontalStep,
                   yLength: data.layout.h * verticalStep
@@ -248,6 +273,18 @@ class MatchPage extends ConsumerStatefulWidget {
 }
 
 class MatchPageState extends ConsumerState<MatchPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load UI immediately when page mounts to ensure widgets are initialized
+    // with the current scouting session (don't wait for a change)
+    Future.microtask(() {
+      if (mounted) {
+        ref.read(matchPagesProvider.notifier).loadUI(context);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen<ScoutingSession>(

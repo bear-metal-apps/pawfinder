@@ -1,9 +1,43 @@
+import 'package:beariscope_scouter/data/local_data.dart';
 import 'package:beariscope_scouter/models/scouting_session.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:libkoala/providers/api_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'scouting_providers.g.dart';
+
+class StateChange {
+  final String key;
+  final dynamic oldValue;
+  final dynamic newValue;
+
+  StateChange({
+    required this.key,
+    required this.oldValue,
+    required this.newValue,
+  });
+}
+
+class UndoRedoState {
+  final List<StateChange> undoStack;
+  final List<StateChange> redoStack;
+
+  UndoRedoState({
+    required this.undoStack,
+    required this.redoStack,
+  });
+
+  UndoRedoState copyWith({
+    List<StateChange>? undoStack,
+    List<StateChange>? redoStack,
+  }) {
+    return UndoRedoState(
+      undoStack: undoStack ?? this.undoStack,
+      redoStack: redoStack ?? this.redoStack,
+    );
+  }
+}
 
 @riverpod
 Future<List<ScoutingEvent>> events(Ref ref) async {
@@ -148,5 +182,125 @@ class ScoutingSessionNotifier extends _$ScoutingSessionNotifier {
 
   void clear() {
     state = const ScoutingSession();
+  }
+}
+
+@riverpod
+class UndoRedoNotifier extends _$UndoRedoNotifier {
+  @override
+  UndoRedoState build() {
+    return UndoRedoState(undoStack: const [], redoStack: const []);
+  }
+
+  void trackChange(String key, dynamic oldValue, dynamic newValue) {
+    // Only track if value actually changed
+    if (oldValue != newValue) {
+      final newUndo = [...state.undoStack];
+      newUndo.add(StateChange(key: key, oldValue: oldValue, newValue: newValue));
+      state = state.copyWith(undoStack: newUndo, redoStack: const []);
+    }
+  }
+
+  bool canUndo() => state.undoStack.isNotEmpty;
+  bool canRedo() => state.redoStack.isNotEmpty;
+
+  void undo() {
+    if (state.undoStack.isEmpty) return;
+
+    final dataBox = Hive.box(boxKey);
+    final change = state.undoStack.last;
+
+    // Apply the undo
+    dataBox.put(change.key, change.oldValue);
+
+    // Move to redo stack
+    final newUndo = [...state.undoStack];
+    newUndo.removeLast();
+    final newRedo = [...state.redoStack];
+    newRedo.add(change);
+
+    state = state.copyWith(undoStack: newUndo, redoStack: newRedo);
+  }
+
+  void redo() {
+    if (state.redoStack.isEmpty) return;
+
+    final dataBox = Hive.box(boxKey);
+    final change = state.redoStack.last;
+
+    // Apply the redo
+    dataBox.put(change.key, change.newValue);
+
+    // Move to undo stack
+    final newRedo = [...state.redoStack];
+    newRedo.removeLast();
+    final newUndo = [...state.undoStack];
+    newUndo.add(change);
+
+    state = state.copyWith(undoStack: newUndo, redoStack: newRedo);
+  }
+
+  void clearHistory() {
+    state = UndoRedoState(undoStack: const [], redoStack: const []);
+  }
+}
+
+@riverpod
+class StratUndoRedoNotifier extends _$StratUndoRedoNotifier {
+  @override
+  UndoRedoState build() {
+    return UndoRedoState(undoStack: const [], redoStack: const []);
+  }
+
+  void trackChange(String key, dynamic oldValue, dynamic newValue) {
+    // Only track if value actually changed
+    if (oldValue != newValue) {
+      final newUndo = [...state.undoStack];
+      newUndo.add(StateChange(key: key, oldValue: oldValue, newValue: newValue));
+      state = state.copyWith(undoStack: newUndo, redoStack: const []);
+    }
+  }
+
+  bool canUndo() => state.undoStack.isNotEmpty;
+  bool canRedo() => state.redoStack.isNotEmpty;
+
+  void undo() {
+    if (state.undoStack.isEmpty) return;
+
+    final dataBox = Hive.box(boxKey);
+    final change = state.undoStack.last;
+
+    // Apply the undo
+    dataBox.put(change.key, change.oldValue);
+
+    // Move to redo stack
+    final newUndo = [...state.undoStack];
+    newUndo.removeLast();
+    final newRedo = [...state.redoStack];
+    newRedo.add(change);
+
+    state = state.copyWith(undoStack: newUndo, redoStack: newRedo);
+  }
+
+  void redo() {
+    if (state.redoStack.isEmpty) return;
+
+    final dataBox = Hive.box(boxKey);
+    final change = state.redoStack.last;
+
+    // Apply the redo
+    dataBox.put(change.key, change.newValue);
+
+    // Move to undo stack
+    final newRedo = [...state.redoStack];
+    newRedo.removeLast();
+    final newUndo = [...state.undoStack];
+    newUndo.add(change);
+
+    state = state.copyWith(undoStack: newUndo, redoStack: newRedo);
+  }
+
+  void clearHistory() {
+    state = UndoRedoState(undoStack: const [], redoStack: const []);
   }
 }

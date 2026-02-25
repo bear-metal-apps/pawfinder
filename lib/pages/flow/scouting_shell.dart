@@ -1,4 +1,5 @@
 import 'package:beariscope_scouter/providers/scouting_providers.dart';
+import 'package:beariscope_scouter/pages/match_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,7 @@ class ScoutingShell extends ConsumerWidget {
     final notifier = ref.read(scoutingSessionProvider.notifier);
     final matchNumber = session.matchNumber ?? 0;
     final position = session.position;
+    final undoRedoState = ref.watch(undoRedoProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,6 +58,38 @@ class ScoutingShell extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.undo),
+            tooltip: 'Undo',
+            onPressed: undoRedoState.undoStack.isEmpty
+                ? null
+                : () async {
+                    ref.read(undoRedoProvider.notifier).undo();
+                    // Give Hive time to persist the change
+                    await Future.delayed(const Duration(milliseconds: 10));
+                    try {
+                      await ref.read(matchPagesProvider.notifier).refreshUI(context);
+                    } catch (e) {
+                      debugPrint('Undo error: $e');
+                    }
+                  },
+          ),
+          IconButton(
+            icon: const Icon(Icons.redo),
+            tooltip: 'Redo',
+            onPressed: undoRedoState.redoStack.isEmpty
+                ? null
+                : () async {
+                    ref.read(undoRedoProvider.notifier).redo();
+                    // Give Hive time to persist the change
+                    await Future.delayed(const Duration(milliseconds: 10));
+                    try {
+                      await ref.read(matchPagesProvider.notifier).refreshUI(context);
+                    } catch (e) {
+                      debugPrint('Redo error: $e');
+                    }
+                  },
+          ),
           IconButton(
             icon: const Icon(Icons.skip_previous),
             tooltip: 'Previous Match',

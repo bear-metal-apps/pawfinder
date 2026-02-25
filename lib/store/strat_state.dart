@@ -34,6 +34,7 @@ class DriverSkillNotifier extends _$DriverSkillNotifier with StratNotifier {
   @override
   void set(List<String> list) {
     state = list;
+    box.put('driverSkill', state);
   }
 }
 
@@ -60,6 +61,7 @@ class DefensiveSkillNotifier extends _$DefensiveSkillNotifier with StratNotifier
   @override
   void set(List<String> list) {
     state = list;
+    box.put('defensiveskill', state);
   }
 }
 
@@ -87,5 +89,21 @@ class MechanicalStabilityNotifier extends _$MechanicalStabilityNotifier with Str
   @override
   void set(List<String> list) {
     state = list;
+    box.put('mechanicalStability', state);
+  }
+}
+
+@riverpod
+class HumanPlayerNotifier extends _$HumanPlayerNotifier {
+  @override
+  int build() {
+    final box = Hive.box(boxKey);
+    return box.get('humanPlayer') ?? 0;
+  }
+
+  void set(int value) {
+    state = value;
+    final box = Hive.box(boxKey);
+    box.put('humanPlayer', value);
   }
 }

@@ -1,4 +1,3 @@
-import 'package:beariscope_scouter/custom_widgets/match_widgets/int_button.dart';
 import 'package:beariscope_scouter/store/strat_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +15,23 @@ class StratPage extends ConsumerStatefulWidget {
 }
 
 class StratPageState extends ConsumerState<StratPage> {
-  Column createList(String text, StratNotifier stratNotifier) {
+  @override
+  void initState() {
+    super.initState();
+    // Reset undo/redo history when entering strat page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(stratUndoRedoProvider.notifier).clearHistory();
+      }
+    });
+  }
+
+  Column createList(
+    String text,
+    String storageKey,
+    StratNotifier stratNotifier,
+    List<String> items,
+  ) {
     return Column(
       children: [
         Text(text, textScaler: TextScaler.linear(2)),
@@ -25,10 +40,18 @@ class StratPageState extends ConsumerState<StratPage> {
           width: 400,
           height: 160,
           child: ReorderableListView(
-            onReorder: (int oldIndex, int newIndex) =>
-                setState(() => stratNotifier.reorder(oldIndex, newIndex)),
+            onReorder: (int oldIndex, int newIndex) {
+              final oldList = stratNotifier.get().toList();
+              setState(() => stratNotifier.reorder(oldIndex, newIndex));
+              final newList = stratNotifier.get().toList();
+              ref.read(stratUndoRedoProvider.notifier).trackChange(
+                storageKey,
+                oldList,
+                newList,
+              );
+            },
             children: [
-              for (final String item in stratNotifier.get())
+              for (final String item in items)
                 ListTile(
                   key: ValueKey(item),
                   title: Text(item),
@@ -45,12 +68,16 @@ class StratPageState extends ConsumerState<StratPage> {
   Widget build(BuildContext context) {
     final Size size = MediaQuery.sizeOf(context);
 
-    final driverSkill = ref.watch(driverSkillProvider.notifier);
-    final defensiveSkill = ref.watch(defensiveSkillProvider.notifier);
-    final mechanicalStability = ref.watch(mechanicalStabilityProvider.notifier);
-    final defensiveSusceptibility = ref.watch(mechanicalStabilityProvider.notifier);
+    final driverSkill = ref.read(driverSkillProvider.notifier);
+    final defensiveSkill = ref.read(defensiveSkillProvider.notifier);
+    final mechanicalStability = ref.read(mechanicalStabilityProvider.notifier);
+    final defensiveSusceptibility = ref.read(mechanicalStabilityProvider.notifier);
+    final driverSkillItems = ref.watch(driverSkillProvider);
+    final defensiveSkillItems = ref.watch(defensiveSkillProvider);
+    final mechanicalStabilityItems = ref.watch(mechanicalStabilityProvider);
+    final humanPlayer = ref.watch(humanPlayerProvider);
+    final humanPlayerNotifier = ref.read(humanPlayerProvider.notifier);
     double defensiveSlider = 0.0;
-    int humanPlayer = 0;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -61,29 +88,51 @@ class StratPageState extends ConsumerState<StratPage> {
               children: [
                 SizedBox(width: size.width),
 
-                createList("Driver Skill", driverSkill),
-                createList("Defensive Susceptibility", defensiveSusceptibility),
-                createList("Defensive Skill", defensiveSkill),
+                createList(
+                  "Driver Skill",
+                  'driverSkill',
+                  driverSkill,
+                  driverSkillItems,
+                ),
+                createList(
+                  "Defensive Susceptibility",
+                  'defensiveskill',
+                  defensiveSusceptibility,
+                  mechanicalStabilityItems,
+                ),
+                createList(
+                  "Defensive Skill",
+                  'defensiveskill',
+                  defensiveSkill,
+                  defensiveSkillItems,
+                ),
                 SfSlider(
                   min: 0.0,
                   max: 10,
                   value: defensiveSlider,
                   onChanged: (value) {
-                    setState(() => defensiveSlider = value
-                    );
+                    setState(() => defensiveSlider = value);
                   },
                   interval: 1.0,
                   showTicks: true,
                   showLabels: true,
-                  // enableTooltip: true,
                 ),
-                createList("Mechanical Stability", mechanicalStability),
+                createList(
+                  "Mechanical Stability",
+                  'mechanicalStability',
+                  mechanicalStability,
+                  mechanicalStabilityItems,
+                ),
 
                 ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      humanPlayer++;
-                    });
+                    final oldValue = humanPlayer;
+                    humanPlayerNotifier.set(humanPlayer + 1);
+                    ref.read(stratUndoRedoProvider.notifier).trackChange(
+                      'humanPlayer',
+                      oldValue,
+                      humanPlayer + 1,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
@@ -96,15 +145,11 @@ class StratPageState extends ConsumerState<StratPage> {
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Padding(
-                      //   padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 0.0),
-                      //   child:
                       Text(
                           'Human Player: $humanPlayer',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.titleSmall
                       ),
-                      // ),
                       Align(
                         alignment: Alignment.bottomRight,
                         child: Container(
@@ -119,11 +164,15 @@ class StratPageState extends ConsumerState<StratPage> {
                             constraints: const BoxConstraints(),
                             icon: const Icon(Icons.remove, color: Colors.black),
                             onPressed: () {
-                              setState(() {
-                                  if (humanPlayer > 0) {
-                                    humanPlayer--;
-                                  }
-                              });
+                              final oldValue = humanPlayer;
+                              if (humanPlayer > 0) {
+                                humanPlayerNotifier.set(humanPlayer - 1);
+                              }
+                              ref.read(stratUndoRedoProvider.notifier).trackChange(
+                                'humanPlayer',
+                                oldValue,
+                                humanPlayer > 0 ? humanPlayer - 1 : humanPlayer,
+                              );
                             },
                           ),
                         ),

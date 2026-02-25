@@ -203,7 +203,6 @@ String _$scoutingSessionNotifierHash() =>
 
 abstract class _$ScoutingSessionNotifier extends $Notifier<ScoutingSession> {
   ScoutingSession build();
-
   @$mustCallSuper
   @override
   void runBuild() {
@@ -213,6 +212,111 @@ abstract class _$ScoutingSessionNotifier extends $Notifier<ScoutingSession> {
             as $ClassProviderElement<
               AnyNotifier<ScoutingSession, ScoutingSession>,
               ScoutingSession,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(UndoRedoNotifier)
+final undoRedoProvider = UndoRedoNotifierProvider._();
+
+final class UndoRedoNotifierProvider
+    extends $NotifierProvider<UndoRedoNotifier, UndoRedoState> {
+  UndoRedoNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'undoRedoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$undoRedoNotifierHash();
+
+  @$internal
+  @override
+  UndoRedoNotifier create() => UndoRedoNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UndoRedoState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UndoRedoState>(value),
+    );
+  }
+}
+
+String _$undoRedoNotifierHash() => r'a2b39df2f7eaef370d5415ee949b90646023646f';
+
+abstract class _$UndoRedoNotifier extends $Notifier<UndoRedoState> {
+  UndoRedoState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<UndoRedoState, UndoRedoState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<UndoRedoState, UndoRedoState>,
+              UndoRedoState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+@ProviderFor(StratUndoRedoNotifier)
+final stratUndoRedoProvider = StratUndoRedoNotifierProvider._();
+
+final class StratUndoRedoNotifierProvider
+    extends $NotifierProvider<StratUndoRedoNotifier, UndoRedoState> {
+  StratUndoRedoNotifierProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'stratUndoRedoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$stratUndoRedoNotifierHash();
+
+  @$internal
+  @override
+  StratUndoRedoNotifier create() => StratUndoRedoNotifier();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UndoRedoState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UndoRedoState>(value),
+    );
+  }
+}
+
+String _$stratUndoRedoNotifierHash() =>
+    r'f07f2b045bf2a72444b3d8dba90949181a43986c';
+
+abstract class _$StratUndoRedoNotifier extends $Notifier<UndoRedoState> {
+  UndoRedoState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<UndoRedoState, UndoRedoState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<UndoRedoState, UndoRedoState>,
+              UndoRedoState,
               Object?,
               Object?
             >;
