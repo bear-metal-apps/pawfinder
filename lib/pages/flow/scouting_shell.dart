@@ -64,13 +64,19 @@ class ScoutingShell extends ConsumerWidget {
             onPressed: undoRedoState.undoStack.isEmpty
                 ? null
                 : () async {
+                    debugPrint('[UNDO_BTN] Clicked. Stack: ${undoRedoState.undoStack.map((c) => '${c.key}=${c.oldValue}').join(', ')}');
                     ref.read(undoRedoProvider.notifier).undo();
-                    // Give Hive time to persist the change
+                    debugPrint('[UNDO_BTN] Undo executed');
+                    
                     await Future.delayed(const Duration(milliseconds: 10));
+                    
                     try {
+                      debugPrint('[UNDO_BTN] Calling refreshUI');
                       await ref.read(matchPagesProvider.notifier).refreshUI(context);
-                    } catch (e) {
-                      debugPrint('Undo error: $e');
+                      debugPrint('[UNDO_BTN] refreshUI completed, state updated');
+                    } catch (e, stack) {
+                      debugPrint('[UNDO_BTN] Error in refreshUI: $e');
+                      debugPrintStack(stackTrace: stack);
                     }
                   },
           ),
@@ -80,13 +86,19 @@ class ScoutingShell extends ConsumerWidget {
             onPressed: undoRedoState.redoStack.isEmpty
                 ? null
                 : () async {
+                    debugPrint('[REDO_BTN] Clicked. Stack: ${undoRedoState.redoStack.map((c) => '${c.key}=${c.newValue}').join(', ')}');
                     ref.read(undoRedoProvider.notifier).redo();
-                    // Give Hive time to persist the change
+                    debugPrint('[REDO_BTN] Redo executed');
+                    
                     await Future.delayed(const Duration(milliseconds: 10));
+                    
                     try {
+                      debugPrint('[REDO_BTN] Calling refreshUI');
                       await ref.read(matchPagesProvider.notifier).refreshUI(context);
-                    } catch (e) {
-                      debugPrint('Redo error: $e');
+                      debugPrint('[REDO_BTN] refreshUI completed, state updated');
+                    } catch (e, stack) {
+                      debugPrint('[REDO_BTN] Error in refreshUI: $e');
+                      debugPrintStack(stackTrace: stack);
                     }
                   },
           ),

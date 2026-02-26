@@ -1,4 +1,5 @@
 import 'package:beariscope_scouter/providers/scouting_providers.dart';
+import 'package:beariscope_scouter/store/strat_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -64,10 +65,14 @@ class StratShell extends ConsumerWidget {
                 : () async {
                     try {
                       ref.read(stratUndoRedoProvider.notifier).undo();
-                      // Give the provider state time to update
                       await Future.delayed(const Duration(milliseconds: 50));
+                      // Invalidate all strat providers to force rebuild
+                      ref.invalidate(driverSkillProvider);
+                      ref.invalidate(defensiveSkillProvider);
+                      ref.invalidate(mechanicalStabilityProvider);
+                      ref.invalidate(humanPlayerProvider);
                     } catch (e) {
-                      debugPrint('Stratundo error: $e');
+                      debugPrint('Strat undo error: $e');
                     }
                   },
           ),
@@ -79,8 +84,12 @@ class StratShell extends ConsumerWidget {
                 : () async {
                     try {
                       ref.read(stratUndoRedoProvider.notifier).redo();
-                      // Give the provider state time to update
                       await Future.delayed(const Duration(milliseconds: 50));
+                      // Invalidate all strat providers to force rebuild
+                      ref.invalidate(driverSkillProvider);
+                      ref.invalidate(defensiveSkillProvider);
+                      ref.invalidate(mechanicalStabilityProvider);
+                      ref.invalidate(humanPlayerProvider);
                     } catch (e) {
                       debugPrint('Strat redo error: $e');
                     }

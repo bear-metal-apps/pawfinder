@@ -47,6 +47,7 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
 
   void _trackAndUpdateValue(String dataBoxKey, dynamic newValue) {
     final oldValue = dataBox.get(dataBoxKey);
+    debugPrint('[TRACK_VALUE] $dataBoxKey: $oldValue → $newValue');
     dataBox.put(dataBoxKey, newValue);
     ref.read(undoRedoProvider.notifier).trackChange(dataBoxKey, oldValue, newValue);
   }
@@ -62,7 +63,9 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
   }
 
   Future<void> refreshUI(BuildContext context) async {
+    debugPrint('[REFRESH] Starting refresh UI');
     await _buildPages(context, resetHistory: false, showLoading: false);
+    debugPrint('[REFRESH] Refresh UI complete');
   }
 
   Future<void> _buildPages(
@@ -70,6 +73,7 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
     required bool resetHistory,
     required bool showLoading,
   }) async {
+    debugPrint('[BUILD] Starting build pages. resetHistory=$resetHistory');
     if (showLoading) {
       state = const AsyncLoading();
     }
@@ -79,6 +83,7 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
     }
 
     state = await AsyncValue.guard(() async {
+      debugPrint('[BUILD] Building widgets from Hive');
       final mediaQuery = MediaQuery.of(context);
       final ultimateHeight = mediaQuery.size.height;
       final ultimateWidth = mediaQuery.size.width;
@@ -100,10 +105,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
         for (final data in page.components) {
           final dataBoxKey = _buildDataKey(data.fieldId);
           final storedValue = dataBox.get(dataBoxKey);
-          final widgetKey = ValueKey('${dataBoxKey}_${storedValue ?? 'null'}');
+          // Include value in key so widget recreates when value changes
+          final widgetKey = ValueKey('${dataBoxKey}_${storedValue ?? "null"}');
+          debugPrint('[BUILD_WIDGET] ${data.fieldId} = $storedValue (key: ${widgetKey.value})');
 
           Widget widget;
-          switch (data.type) {
+          try {
+            switch (data.type) {
             case 'volumetric_button':
               widget = BigNumberWidget(
                 key: widgetKey,
@@ -163,15 +171,22 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
 
             case "dropdown":
             List<dynamic> items = data.parameters["options"];
-            int initialIndex = items.indexOf(storedValue);
+            int? initialIndex;
+            if (items.isNotEmpty && storedValue != null) {
+              final idx = items.indexOf(storedValue);
+              // Only set initialIndex if the item was found
+              if (idx >= 0) {
+                initialIndex = idx;
+              }
+            }
 
               widget = Dropdown(
                 key: widgetKey,
                 title: data.alias,
                 backgroundColor: Colors.blueAccent,
-                items: items.map((x) => x.toString()).toList(), // darts type system is really weird
+                items: items.isEmpty ? ['No options'] : items.map((x) => x.toString()).toList(),
                 onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
-                initialIndex: initialIndex == -1 ? null : initialIndex,
+                initialIndex: initialIndex,
                 xValue: data.layout.w * horizontalStep,
                 yValue: data.layout.h * verticalStep,
               );
@@ -198,8 +213,15 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
               );
               break;
             case "slider":
-              final double? sliderValue =
-                  storedValue is num ? storedValue.toDouble() : null;
+              // Ensure slider value is within valid range
+              double? sliderValue = null;
+              if (storedValue is num) {
+                final numValue = storedValue.toDouble();
+                // Clamp to valid range
+                if (numValue >= 0 && numValue <= 10) {
+                  sliderValue = numValue;
+                }
+              }
               widget = CustomSlider(
                 key: widgetKey,
                 onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
@@ -212,19 +234,26 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
               );
               break;
             case "segmented_button":
-              List<dynamic> items = data.parameters["options"];
+              List<dynamic> items = data.parameters["options"] ?? [];
               int? initialIndex;
-              if (storedValue is int) {
-                initialIndex = storedValue >= 0 && storedValue < items.length
-                    ? storedValue
-                    : null;
-              } else if (storedValue is String) {
-                final idx = items.indexOf(storedValue);
-                initialIndex = idx >= 0 ? idx : null;
+              if (items.isNotEmpty) {
+                if (storedValue is int) {
+                  // Ensure index is within bounds
+                  if (storedValue >= 0 && storedValue < items.length) {
+                    initialIndex = storedValue;
+                  }
+                } else if (storedValue is String) {
+                  final idx = items.indexOf(storedValue);
+                  if (idx >= 0) {
+                    initialIndex = idx;
+                  }
+                }
               }
+              // Default to empty list representation if no items
+              final segmentItems = items.isEmpty ? ['No options'] : items.map((x) => x.toString()).toList();
               widget = CustomSegmentedButton(
                   key: widgetKey,
-                  segments: items.map((x) => x.toString()).toList(),
+                  segments: segmentItems,
                   onChanged: (value) => _trackAndUpdateValue(dataBoxKey, value),
                   initialIndex: initialIndex,
                   xLength: data.layout.w * horizontalStep,
@@ -248,6 +277,11 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
               break;
             default:
               continue;
+            }
+          } catch (e) {
+            // If widget creation fails, skip this component
+            debugPrint('Error creating widget for ${data.fieldId}: $e');
+            continue;
           }
           matchPages[index].add(
             Positioned(
@@ -306,8 +340,16 @@ class MatchPageState extends ConsumerState<MatchPage> {
 
     return pagesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, stack) => Center(child: Text(err.toString())),
-      data: (pages) => Stack(children: pages[widget.index]),
+      error: (err, stack) => Center(child: Text('Error: ${err.toString()}')),
+      data: (pages) {
+        if (pages.isEmpty) {
+          return const Center(child: Text('No pages loaded'));
+        }
+        if (widget.index >= pages.length) {
+          return Center(child: Text('Invalid page index: ${widget.index}'));
+        }
+        return Stack(children: pages[widget.index]);
+      },
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:beariscope_scouter/data/local_data.dart';
 import 'package:beariscope_scouter/models/scouting_session.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:libkoala/providers/api_provider.dart';
@@ -195,9 +196,31 @@ class UndoRedoNotifier extends _$UndoRedoNotifier {
   void trackChange(String key, dynamic oldValue, dynamic newValue) {
     // Only track if value actually changed
     if (oldValue != newValue) {
+      debugPrint('[TRACK] Tracking: $key | OLD=$oldValue | NEW=$newValue');
+      
+      // Prevent tracking a change that immediately reverses the previous change
+      // (This prevents double-tracking bugs where a value is changed and then
+      // automatically reverted, creating two undo stack entries)
+      if (state.undoStack.isNotEmpty) {
+        final lastChange = state.undoStack.last;
+        if (lastChange.key == key &&
+            lastChange.newValue == oldValue &&
+            lastChange.oldValue == newValue) {
+          // Collapse the inverse change: remove the previous change instead
+          // of adding a new one. This prevents a pair of immediate
+          // opposite changes from creating two undo steps for one user action.
+          final newUndo = [...state.undoStack];
+          newUndo.removeLast();
+          state = state.copyWith(undoStack: newUndo, redoStack: const []);
+          debugPrint('[TRACK] Collapsed inverse change for $key; undo size=${state.undoStack.length}');
+          return;
+        }
+      }
+      
       final newUndo = [...state.undoStack];
       newUndo.add(StateChange(key: key, oldValue: oldValue, newValue: newValue));
       state = state.copyWith(undoStack: newUndo, redoStack: const []);
+      debugPrint('[TRACK] Undo stack now has ${state.undoStack.length} items');
     }
   }
 
@@ -205,13 +228,18 @@ class UndoRedoNotifier extends _$UndoRedoNotifier {
   bool canRedo() => state.redoStack.isNotEmpty;
 
   void undo() {
-    if (state.undoStack.isEmpty) return;
+    if (state.undoStack.isEmpty) {
+      debugPrint('[UNDO] Stack is empty');
+      return;
+    }
 
     final dataBox = Hive.box(boxKey);
     final change = state.undoStack.last;
 
+    debugPrint('[UNDO] Performing: ${change.key} | restoring OLD=${change.oldValue} (was NEW=${change.newValue})');
     // Apply the undo
     dataBox.put(change.key, change.oldValue);
+    debugPrint('[UNDO] Hive updated. Verifying: ${dataBox.get(change.key)}');
 
     // Move to redo stack
     final newUndo = [...state.undoStack];
@@ -220,16 +248,22 @@ class UndoRedoNotifier extends _$UndoRedoNotifier {
     newRedo.add(change);
 
     state = state.copyWith(undoStack: newUndo, redoStack: newRedo);
+    debugPrint('[UNDO] Complete. Undo=${state.undoStack.length}, Redo=${state.redoStack.length}');
   }
 
   void redo() {
-    if (state.redoStack.isEmpty) return;
+    if (state.redoStack.isEmpty) {
+      debugPrint('[REDO] Stack is empty');
+      return;
+    }
 
     final dataBox = Hive.box(boxKey);
     final change = state.redoStack.last;
 
+    debugPrint('[REDO] Performing: ${change.key} | restoring NEW=${change.newValue} (was OLD=${change.oldValue})');
     // Apply the redo
     dataBox.put(change.key, change.newValue);
+    debugPrint('[REDO] Hive updated. Verifying: ${dataBox.get(change.key)}');
 
     // Move to undo stack
     final newRedo = [...state.redoStack];
@@ -238,6 +272,7 @@ class UndoRedoNotifier extends _$UndoRedoNotifier {
     newUndo.add(change);
 
     state = state.copyWith(undoStack: newUndo, redoStack: newRedo);
+    debugPrint('[REDO] Complete. Undo=${state.undoStack.length}, Redo=${state.redoStack.length}');
   }
 
   void clearHistory() {
@@ -255,6 +290,21 @@ class StratUndoRedoNotifier extends _$StratUndoRedoNotifier {
   void trackChange(String key, dynamic oldValue, dynamic newValue) {
     // Only track if value actually changed
     if (oldValue != newValue) {
+      // Prevent tracking a change that immediately reverses the previous change
+      // (This prevents double-tracking bugs where a value is changed and then
+      // automatically reverted, creating two undo stack entries)
+      if (state.undoStack.isNotEmpty) {
+        final lastChange = state.undoStack.last;
+        if (lastChange.key == key &&
+            lastChange.newValue == oldValue &&
+            lastChange.oldValue == newValue) {
+          final newUndo = [...state.undoStack];
+          newUndo.removeLast();
+          state = state.copyWith(undoStack: newUndo, redoStack: const []);
+          return;
+        }
+      }
+      
       final newUndo = [...state.undoStack];
       newUndo.add(StateChange(key: key, oldValue: oldValue, newValue: newValue));
       state = state.copyWith(undoStack: newUndo, redoStack: const []);
