@@ -12,6 +12,7 @@ import 'package:beariscope_scouter/custom_widgets/match_widgets/tristate.dart';
 import 'package:beariscope_scouter/data/local_data.dart';
 import 'package:beariscope_scouter/data/match_json_gen.dart';
 import 'package:beariscope_scouter/data/upload_queue.dart';
+import 'package:beariscope_scouter/main.dart';
 import 'package:beariscope_scouter/models/scouting_session.dart';
 import 'package:beariscope_scouter/pages/flow/scouting_shell.dart';
 import 'package:flutter/material.dart';
@@ -87,10 +88,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 height: data.layout.h * verticalStep,
                 dataName: data.alias,
                 initialValue: storedValue is int ? storedValue : null,
-                onChanged: (value){
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
               );
@@ -103,10 +107,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 width: data.layout.w * horizontalStep,
                 height: data.layout.h * verticalStep,
                 initialValue: storedValue is int ? storedValue : null,
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
               );
@@ -114,10 +121,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
             case "int_text_box":
               widget = IntTextbox(
                 key: ValueKey(dataBoxKey),
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
                 dataName: data.alias,
@@ -133,10 +143,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 width: data.layout.w * horizontalStep,
                 height: data.layout.h * verticalStep,
                 initialValue: storedValue is bool ? storedValue : null,
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
                 visualFeedback: true,
@@ -150,10 +163,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 width: data.layout.w * horizontalStep,
                 height: data.layout.h * verticalStep,
                 initialString: storedValue is String ? storedValue : null,
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
               );
@@ -170,10 +186,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 items: items
                     .map((x) => x.toString())
                     .toList(), // darts type system is really weird
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
                 initialIndex: initialIndex == -1 ? null : initialIndex,
@@ -188,10 +207,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 width: data.layout.w * horizontalStep,
                 height: data.layout.h * verticalStep,
                 initialValue: storedValue is int ? storedValue : null,
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
               );
@@ -204,10 +226,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                 height: data.layout.h * verticalStep,
                 visualFeedback: true,
                 initialValue: storedValue is bool ? storedValue : null,
-                onChanged: (value) {
-                  return dataBox.put(dataBoxKey, value);
+                onChanged: (value) async {
+                  dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
               );
@@ -218,10 +243,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
                   : null;
               widget = CustomSlider(
                 key: ValueKey(dataBoxKey),
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
                 title: data.alias,
@@ -246,10 +274,13 @@ class MatchPagesNotifier extends AsyncNotifier<List<List<Widget>>> {
               widget = CustomSegmentedButton(
                 key: ValueKey(dataBoxKey),
                 segments: items.map((x) => x.toString()).toList(),
-                onChanged: (value) {
+                onChanged: (value) async {
                   dataBox.put(dataBoxKey, value);
                   if(page.sectionId == 'auto'){
-                    startFlash();
+                    await Future.delayed(Duration(seconds: 15));
+                    if(ref.watch(routerProvider).state.path != '/match/tele'){
+                      teleFlash.forward();
+                    }
                   }
                 },
                 initialIndex: initialIndex,

@@ -1,5 +1,6 @@
 import 'package:beariscope_scouter/data/local_data.dart';
 import 'package:beariscope_scouter/data/match_json_gen.dart';
+import 'package:beariscope_scouter/data/ui_json_serialization.dart';
 import 'package:beariscope_scouter/data/upload_queue.dart';
 import 'package:beariscope_scouter/providers/brightness_provider.dart';
 import 'package:beariscope_scouter/providers/scouting_providers.dart';
@@ -21,10 +22,6 @@ class ScoutingShell extends ConsumerStatefulWidget {
 
 late AnimationController teleFlash;
 
-Future<void> startFlash() async {
-  await Future.delayed(Duration(seconds: 15));
-  teleFlash.forward();
-}
 
 class _ScoutingShellState extends ConsumerState<ScoutingShell> with SingleTickerProviderStateMixin{
 
