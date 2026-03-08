@@ -1,13 +1,10 @@
 <p align="center">
-  <img src="docs/assets/banner.png" alt="Beariscope" />
+  <img src="docs/assets/banner.png" alt="Pawfinder" />
 </p><p align="center">
   <b>The ultimate FRC scouting app</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/bear-metal-apps/pawfinder/releases">
-    <img src="https://img.shields.io/github/v/release/bear-metal-apps/pawfinder?label=Latest%20Release" alt="Release"/>
-  </a>
   <a href="https://github.com/bear-metal-apps/pawfinder/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/bear-metal-apps/pawfinder?color=blue" alt="License"/>
   </a>
