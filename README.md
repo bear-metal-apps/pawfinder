@@ -1,13 +1,9 @@
+<h1 align="center">Pawfinder</h1>
 <p align="center">
-  <img src="docs/assets/banner.png" alt="Beariscope" />
-</p><p align="center">
   <b>The ultimate FRC scouting app</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/bear-metal-apps/pawfinder/releases">
-    <img src="https://img.shields.io/github/v/release/bear-metal-apps/pawfinder?label=Latest%20Release" alt="Release"/>
-  </a>
   <a href="https://github.com/bear-metal-apps/pawfinder/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/bear-metal-apps/pawfinder?color=blue" alt="License"/>
   </a>
@@ -16,8 +12,8 @@
   </a>
 </p>
 
-> [!NOTE]
-> Pawfinder is under active development. We're running it internally this season and plan to open it up to other teams next year.
+> [!IMPORTANT]
+> This specific repo has been archived. All code has been moved to our monorepo [bearings](https://github.com/bear-metal-2046/bearings).
 ---
 
 # Pawfinder
